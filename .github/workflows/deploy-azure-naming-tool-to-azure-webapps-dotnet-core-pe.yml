@@ -102,7 +102,7 @@ jobs:
     if: needs.check-secrets.outputs.secrets-valid == 'true'
     environment:
       name: 'Development'
-      url: https://management.azure.com/subscriptions/${azure-subscription-id}/resourceGroups/${azure-resource-group}/providers/Microsoft.Web/sites/${azure-webapp-name}/extensions/onedeploy?api-version=2020-12-01
+      url: https://management.azure.com/subscriptions/$azure-subscription-id/resourceGroups/$azure-resource-group/providers/Microsoft.Web/sites/$azure-webapp-name/extensions/onedeploy?api-version=2020-12-01
 
     steps:
       - name: Download artifact from build job
@@ -138,7 +138,7 @@ jobs:
             APP_URL=$(az storage blob generate-sas --full-uri --permissions r --expiry ${{ env.expiry }} --account-name $ACCOUNT -c $CONTAINER -n $ACCOUNT | xargs)
 
             az rest --method PUT \
-            --uri https://management.azure.com/subscriptions/${azure-subscription-id}/resourceGroups/${azure-resource-group}/providers/Microsoft.Web/sites/${azure-webapp-name}/extensions/onedeploy?api-version=2020-12-01 \
+            --uri https://management.azure.com/subscriptions/$azure-subscription-id/resourceGroups/$azure-resource-group/providers/Microsoft.Web/sites/$azure-webapp-name/extensions/onedeploy?api-version=2020-12-01 \
             --body '{ 
                 "properties": { 
                     "properties": {
