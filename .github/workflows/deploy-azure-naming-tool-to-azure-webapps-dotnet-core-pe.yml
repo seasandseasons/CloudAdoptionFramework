@@ -103,7 +103,7 @@ jobs:
     if: needs.check-secrets.outputs.secrets-valid == 'true'
     environment:
       name: 'Development'
-      url: ${{ secrets.AZURE_WEBAPP_URI }}
+      url: https://management.azure.com/subscriptions/95bd5b4d-cff3-4ab1-82ac-2e4e409071c5/resourceGroups/rg-aznamingtool/providers/Microsoft.Web/sites/testaznamingtool-app/extensions/onedeploy?api-version=2020-12-01
 
     steps:
       - name: Download artifact from build job
@@ -139,7 +139,7 @@ jobs:
             APP_URL=$(az storage blob generate-sas --full-uri --permissions r --expiry ${{ env.expiry }} --account-name $ACCOUNT -c $CONTAINER -n $ACCOUNT | xargs)
 
             az rest --method PUT \
-            --uri ${{ secrets.AZURE_WEBAPP_URI }} \
+            --uri https://management.azure.com/subscriptions/95bd5b4d-cff3-4ab1-82ac-2e4e409071c5/resourceGroups/rg-aznamingtool/providers/Microsoft.Web/sites/testaznamingtool-app/extensions/onedeploy?api-version=2020-12-01 \
             --body '{ 
                 "properties": { 
                     "properties": {
