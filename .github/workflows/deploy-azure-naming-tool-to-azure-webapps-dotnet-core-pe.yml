@@ -52,6 +52,7 @@ jobs:
             azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
             azure-subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
             azure-resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
+            azure-webapp-uri: ${{ AZURE_WEBAPP_URI }}
             ACCOUNT: aznamingtooltestst  # Does not have to exist, this will be created for you
             CONTAINER: aznamingtooltest
             EXPIRY_TIME: 10 minutes
@@ -102,7 +103,7 @@ jobs:
     if: needs.check-secrets.outputs.secrets-valid == 'true'
     environment:
       name: 'Development'
-      url: https://management.azure.com/subscriptions/$azure-subscription-id/resourceGroups/$azure-resource-group/providers/Microsoft.Web/sites/$azure-webapp-name/extensions/onedeploy?api-version=2020-12-01
+      url: ${{ AZURE_WEBAPP_URI }}
 
     steps:
       - name: Download artifact from build job
@@ -138,7 +139,7 @@ jobs:
             APP_URL=$(az storage blob generate-sas --full-uri --permissions r --expiry ${{ env.expiry }} --account-name $ACCOUNT -c $CONTAINER -n $ACCOUNT | xargs)
 
             az rest --method PUT \
-            --uri https://management.azure.com/subscriptions/$azure-subscription-id/resourceGroups/$azure-resource-group/providers/Microsoft.Web/sites/$azure-webapp-name/extensions/onedeploy?api-version=2020-12-01 \
+            --uri ${{ AZURE_WEBAPP_URI }} \
             --body '{ 
                 "properties": { 
                     "properties": {
