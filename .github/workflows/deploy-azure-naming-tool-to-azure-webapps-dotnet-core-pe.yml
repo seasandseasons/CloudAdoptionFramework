@@ -50,6 +50,11 @@ jobs:
             azure-webapp-name: ${{ secrets.AZURE_WEBAPP_NAME }}
             azure-webapp-publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
             azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
+            azure-subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            azure-resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
+            ACCOUNT: aznamingtooltestst  # Does not have to exist, this will be created for you
+            CONTAINER: aznamingtooltest
+            EXPIRY_TIME: 10 minutes
           if: (env.azure-webapp-name != null && env.azure-webapp-publish-profile != null && env.azure-credentials != null)
           run: echo 'isvalid=true' >> $GITHUB_OUTPUT
             
@@ -110,10 +115,37 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+      - name: Zip the app contents
+        uses: papeloto/action-zip@v1
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          files: .net-app.jar
+          dest: .net-app.zip
+
+      - name: Set SAS token expiration
+        run: echo "expiry=`date -u -d "$EXPIRY_TIME" '+%Y-%m-%dT%H:%MZ'`" >> $GITHUB_ENV
+
+      - name: Azure CLI script
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.19.1
+          inlineScript: |
+            az extension add --name webapp
+
+            az storage account create   -n $ACCOUNT   -g $GROUP -l eastus2
+            az storage container create -n $CONTAINER --account-name $ACCOUNT
+            az storage blob upload      -f app.zip    --account-name $ACCOUNT -c $CONTAINER -n $ACCOUNT
+
+            APP_URL=$(az storage blob generate-sas --full-uri --permissions r --expiry ${{ env.expiry }} --account-name $ACCOUNT -c $CONTAINER -n $ACCOUNT | xargs)
+
+            az rest --method PUT \
+            --uri https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.Web/sites/${{ secrets.AZURE_WEBAPP_NAME }}/extensions/onedeploy?api-version=2020-12-01 \
+            --body '{ 
+                "properties": { 
+                    "properties": {
+                        "packageUri": "'"${APP_URL}"'"
+                    }, 
+                    "type": "zip",
+                }
+            }'
+
+            az storage container delete -n $CONTAINER --account-name $ACCOUNT
