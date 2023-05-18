@@ -123,7 +123,7 @@ jobs:
           dest: .net-app.zip
 
       - name: Set SAS token expiration
-        run: echo "expiry=`date -u -d "$EXPIRY_TIME" '+%Y-%m-%dT%H:%MZ'`" >> $GITHUB_ENV
+        run: echo "expiry=`/bin/date -u -d "$EXPIRY_TIME" '+%Y-%m-%dT%H:%MZ'`" >> $GITHUB_ENV
 
       - name: Azure CLI script
         uses: azure/CLI@v1
