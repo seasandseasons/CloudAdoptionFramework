@@ -55,7 +55,7 @@ jobs:
             azure-webapp-uri: ${{ secrets.AZURE_WEBAPP_URI }}
             ACCOUNT: aznamingtooltestst  # Does not have to exist, this will be created for you
             CONTAINER: aznamingtooltest
-            EXPIRY_TIME: 10 minutes
+            EXPIRY_TIME: "$(date -u -d '+10 minutes' +'%Y-%m-%dT%H:%MZ')"
           if: (env.azure-webapp-name != null && env.azure-webapp-publish-profile != null && env.azure-credentials != null)
           run: echo 'isvalid=true' >> $GITHUB_OUTPUT
             
